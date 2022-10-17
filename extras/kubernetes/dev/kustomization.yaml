@@ -1,0 +1,55 @@
+# Copyright (C) 2022 - present Ioannis Theodosiadis, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# #it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Aufruf:   cd kustomize\dev
+#             kustomize build | kubectl apply -f -
+#             kustomize build | kubectl delete -f -
+#           ggf. "--enable_kyaml=false", wenn "k8sdeps" statt "kyaml" genutzt werden soll
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays
+resources:
+  - ../base
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/examples/configGeneration.md
+# https://github.com/kubernetes-sigs/kustomize/blob/master/examples/generatorOptions.md
+configMapGenerator:
+  - name: schwimmgruppe-env
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_DEFAULT=dev
+      - SPRING_PROFILES_ACTIVE=dev
+      # auskommentieren bei Octant statt Lens
+      - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
+      - SERVER_SSL_ENABLED="false"
+      - SERVER_HTTP2_ENABLED="false"
+      - APPLICATION_LOGLEVEL=TRACE
+
+# Labels, Images, Tags, Limits usw. ueberschreiben
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#customizing
+# https://github.com/kubernetes/community/blob/master/contributors/devel/sig-api-machinery/strategic-merge-patch.md
+patchesStrategicMerge:
+  - requests-limits.yaml
+  - liveness.yaml
+  - readiness.yaml
+
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#kustomize-feature-list
+commonLabels:
+  env: dev
+
+# https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/buildmetadata
+buildMetadata: [managedByLabel]

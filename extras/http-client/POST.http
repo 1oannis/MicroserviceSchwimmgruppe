@@ -1,0 +1,26 @@
+// Eine neue Schwimmgruppe anlegen
+// Code 201
+POST {{baseUrl}}/api
+Content-Type: application/json
+
+< data/schwimmgruppe-new.json
+
+###
+
+// Eine neue Schwimmgruppe mit falschem Datentyp und falscher Sysntax anlegen
+// Code 400
+POST {{baseUrl}}/api
+Content-Type: application/json
+
+< data/schwimmgruppe-new-badrequest.json
+
+###
+
+// Eine neue Schwimmgruppe mit fehlerhaften Daten anlegen
+// Code 422
+POST {{baseUrl}}/api
+Content-Type: application/json
+
+< data/schwimmgruppe-new-unprocessable.json
+
+###

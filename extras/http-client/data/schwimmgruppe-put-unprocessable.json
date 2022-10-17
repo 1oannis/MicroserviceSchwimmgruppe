@@ -1,0 +1,13 @@
+{
+  "name": "Stuttgart",
+  "aktiv": true,
+  "trainingstermin1": "2022-04-22T16:00:00",
+  "trainingstermin2": "2022-04-26T16:00:00",
+  "ligaklasse": "1.BL",
+  "schwimmhalle": {
+    "id": "00000000-1000-0000-0000-000000000003",
+    "bezeichnung": "",
+    "plz": "",
+    "ort": ""
+  }
+}

@@ -1,0 +1,14 @@
+query ($name: String! = "B-Jugend") {
+  schwimmgruppen(input: {name: $name}) {
+    name
+    aktiv
+    trainingstermin1
+    trainingstermin2
+    ligaklasse
+    schwimmhalle {
+      bezeichnung
+      plz
+      ort
+    }
+  }
+}

@@ -1,0 +1,56 @@
+@startuml Schwimmgruppe
+skinparam classAttributeIconSize 0
+
+package java {
+  package util {
+    class UUID
+  }
+
+  package time {
+    class LocalDateTime
+  }
+}
+
+package com.acme.schwimmgruppe.entity #ABC {
+
+  class SchwimmgruppeId <<typealias>>
+
+  class DbId <<typealias>>
+
+  enum LigaklasseType {
+    KEINE_LIGA
+    STADTLIGA
+    LANDESLIGA
+    ZWEITE_BUNDESLIGA
+    ERSTE_BUNDESLIGA
+  }
+
+  entity Schwimmgruppe <<entity>> {
+    @Id @GeneratedValue readonly id: SchwimmgruppeId?
+    name: String
+    aktiv: Boolean
+    trainingstermin1: LocalDateTime?
+    trainingstermin2: LocalDateTime?
+    @Convert ligaklasse: LigaklasseType?
+    @CreationTimestamp readonly erzeugt: LocalDateTime
+    @CreationTimestamp readonly aktualisiert: LocalDateTime
+  }
+
+  entity Schwimmhalle <<entity>> {
+    @Id @GeneratedValue @JsonIgnore readonly id: DbId?
+    readonly bezeichnung: String
+    readonly plz: String
+    readonly ort: String
+  }
+
+  Schwimmgruppe .right.> SchwimmgruppeId
+  Schwimmgruppe .down.> LocalDateTime
+  DbId .right.> UUID
+  SchwimmgruppeId .left.> UUID
+  Schwimmgruppe .down.> LigaklasseType
+  Schwimmgruppe *-up-> "1" Schwimmhalle: @OneToOne(cascade = [...]) @JoinColumn(...) schwimmhalle
+  Schwimmhalle .right.> DbId
+}
+hide empty members
+footer (c) Ioannis Thedosiadis
+@enduml

@@ -1,0 +1,235 @@
+# Copyright (C) 2022 - present Ioannis Theodosiadis, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Aufruf:   kubectl apply -f kubernetes.yaml --namespace acme
+#           kubectl port-forward service/schwimmgruppe 8080 --namespace acme
+#           curl --silent --user admin:p https://localhost:8080/api/00000000-0000-0000-0000-000000000001
+
+# Ein Pod hat als Schablone ein Deployment (siehe "kind") und beinhaltet mind. 1 Image einschl. Replikationen
+# Ein Pod ist die Verwaltungseinheit fuer Container
+
+#   kubectl api-versions
+#   kubectl create deployment schwimmgruppe --image=ioannistheodosiadis/schwimmgruppe:2.0.0 --dry-run=client --output=yaml > deployment.yaml
+#   kubectl create service clusterip schwimmgruppe --tcp=8080:8080 --dry-run=client --output=yaml > service.yaml
+
+# Kommandozeile statt Octant https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands
+#   kubectl get deployments --namespace acme
+#   kubectl describe deployment schwimmgruppe --namespace acme
+#   kubectl get pods --namespace acme
+#   kubectl get pods --selector app=schwimmgruppe --namespace acme
+#   kubectl get pod schwimmgruppe-?????????-????? --output wide --namespace acme
+#   kubectl get pod schwimmgruppe-?????????-????? --output yaml --namespace acme
+#   kubectl describe pod schwimmgruppe-?????????-????? --namespace acme
+#   kubectl exec schwimmgruppe-?????????-????? --namespace acme -- printenv SCHWIMMGRUPPE_SERVICE_HOST
+#   kubectl exec schwimmgruppe-?????????-????? --namespace acme -- printenv SCHWIMMGRUPPE_SERVICE_PORT
+#   kubectl exec schwimmgruppe-?????????-????? --namespace acme -- printenv | sort
+#   kubectl exec schwimmgruppe-?????????-????? --stdin --tty --namespace acme  -- bash
+#   kubectl get service schwimmgruppe --namespace acme
+#   kubectl describe service schwimmgruppe --namespace acme
+#   kubectl logs schwimmgruppe-?????????-????? --namespace acme
+#   kubectl get replicaset --namespace acme
+
+# IP-Adresse des Pod ermitteln:
+#   $podName = kubectl get pods --selector app=schwimmgruppe --namespace acme | wsl --exec awk '/^schwimmgruppe-/ {print $1}'
+#   $ip = kubectl describe pod $podName --namespace acme | wsl --exec awk '/^IP:/ {print $2}'
+
+---
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    account: schwimmgruppe
+    component: microservice
+    env: dev
+    framework: spring-boot
+    managed-by: kustomize
+  name: acme-schwimmgruppe
+  namespace: acme
+---
+# https://kubernetes.io/docs/concepts/configuration/configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schwimmgruppe-env
+  labels:
+    component: microservice
+    framework: spring-boot
+data:
+  # Key-Value-Paare (hier: fuer die Umgebungsvariable)
+  TZ: Europe/Berlin
+  SPRING_PROFILES_ACTIVE: dev
+  SPRING_OUTPUT_ANSI_ENABLED: NEVER
+  APPLICATION_LOGLEVEL: trace
+  SERVER_SSL_ENABLED: "false"
+  SERVER_HTTP2_ENABLED: "false"
+
+---
+# https://kubernetes.io/docs/concepts/services-networking/connect-applications-service
+# https://kubernetes.io/docs/concepts/services-networking/service
+apiVersion: v1
+kind: Service
+metadata:
+  name: schwimmgruppe
+  labels:
+    app: schwimmgruppe
+    component: microservice
+    framework: spring-boot
+spec:
+  # Selektion der Pods fuer eingehende Requests
+  selector:
+    app: schwimmgruppe
+  ports:
+    - port: 8080
+      # https://kubernetes.io/docs/concepts/services-networking/service/#protocol-support
+      #protocol: TCP
+      # https://kubernetes.io/docs/concepts/services-networking/service/#nodeport
+      # default-Bereich: 30000 - 32767
+      #nodePort: 30080
+  # https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  #type: ClusterIP
+  #type: NodePort
+
+---
+apiVersion: apps/v1
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#deployment-v1-apps
+kind: Deployment
+# Beschreibung des Deplyoments ("Metadaten")
+metadata:
+  name: schwimmgruppe
+  # Kennzeichen bzw. Markierung
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels
+  labels:
+    # oft auch ein verkuerztes Label, wie z.B.   app: schwimmgruppe
+    app: schwimmgruppe
+    component: microservice
+    framework: spring-boot
+spec:
+  # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#selector
+  selector:
+    # Label zur Identifikation des AKTUELLEN Deployments
+    # z.B. fuer:   kubectl delete deployment --selector app=schwimmgruppe --namespace acme
+    #              kubectl delete deployment/schwimmgruppe --namespace acme
+    # gleicher Wert wie in template.metadata.labels
+    matchLabels:
+      app: schwimmgruppe
+  # Anzahl laufender Pods fuer das Template zu diesem Deployment (s.u.)
+  replicas: 1
+  # https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates
+  # Template fuer Pod
+  template:
+    metadata:
+      # Labels fuer einen laufenden Pod
+      labels:
+        app: schwimmgruppe
+    # Spezifikation des Pod
+    spec:
+      containers:
+        # https://kubernetes.io/docs/concepts/containers/images
+        - image: ioannistheodosiadis/schwimmgruppe:2.0.0
+          # default:   imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
+          name: schwimmgruppe
+          # https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables
+          # https://opensource.com/article/19/6/introduction-kubernetes-secrets-and-configmaps
+          envFrom:
+            # https://kubernetes.io/docs/concepts/configuration/configmap
+            - configMapRef:
+                name: schwimmgruppe-env
+          # System-Properties für Jib, z.B. spring.profiles.active, spring.data.mongodb.username
+          # https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#jvm-flags
+          # funktioniert jedoch nicht mit dem Gradle-Plugin von Spring Boot, deshalb ConfigMap mit Umgebungsvariablen
+          #env:
+          #  - name: JAVA_TOOL_OPTIONS
+          #    value : "-Dspring.profiles.active=dev, -Dspring.data.mongodb.username=..."
+          ports:
+            - containerPort: 8080
+              name: http
+          securityContext:
+            # eingebauten User aus dem Basis-Image nutzen: cnb (uid=1000, gid=1000) bei "Cloud Native Buildpacks", nonroot (uid=65532, gid=65532) bei Distroless
+            runAsNonRoot: true
+            # Distroless Image: nonroot
+            #runAsUser: 65532
+            allowPrivilegeEscalation: false
+            # Logdatei in einem Verzeichnis durch Mounting; Zertifikate werden durch Paketo installiert
+            #readOnlyRootFilesystem: true
+            # https://snyk.io/blog/10-kubernetes-security-context-settings-you-should-understand
+            capabilities:
+              # keine Linux kernel capabilities
+              drop: ["all"]
+          resources:
+            # https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-resource-requests-and-limits
+            # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers
+            # Mindestanforderung an Ressourcen
+            requests:
+              # CPU-Ressourcen werden in "millicores" definiert, z.B. "500m" oder "1"
+              # Beachte: Bei Hyper-Threading koennen in 1 CPU-Kern 2 verschiedene Threads bearbeitet werden
+              #          d.h. das Betriebssystem sieht scheinbar 2x so viele Kerne wie tatsaechlich vorhanden sind
+              cpu: 500m
+              #cpu: 200m
+              # Memory-Resources werden i.a. als "mebibyte" Wert definiert
+              # https://en.wikipedia.org/wiki/Byte#Multiple-byte_units
+              memory: 512Mi
+              #memory: 256Mi
+            # https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-resource-requests-and-limits
+            # Begrenzung der Ressourcen:   kubectl top pod
+            limits:
+              # CPU-Ressourcen werden in "millicores" definiert, z.B. "500m" oder "1"
+              # Beachte: Bei Hyper-Threading koennen in 1 CPU-Kern 2 verschiedene Threads bearbeitet werden
+              #          d.h. das Betriebssystem sieht scheinbar 2x so viele Kerne wie tatsaechlich vorhanden sind
+              cpu: 600m
+              #cpu: 200m
+              # Memory-Resources werden i.a. als "mebibyte" Wert definiert
+              memory: 512Mi
+              #memory: 256Mi
+          # Ist der Container "alive" oder "dead" (= "failing")? Restart im Fehlerfall
+          # https://developers.redhat.com/blog/2020/11/10/you-probably-need-liveness-and-readiness-probes
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            # Anzahl Sekunden, bis die Probe fuer Liveness abgesetzt wird
+            initialDelaySeconds: 30
+            # default: 1 Sek.
+            timeoutSeconds: 20
+            # periodischer Abstand zwischen den Proben (default: 10 Sek.)
+            periodSeconds: 120
+            # max. Anzahl an Fehlversuchen (default: 3)
+            failureThreshold: 2
+          # Ist der Container "ready", um Requests zu beantworten? Sind Nachbarsysteme, z.B. DB-Server, ebenfalls "ready"?
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            # Anzahl Sekunden, bis die Probe fuer Readiness abgesetzt wird
+            initialDelaySeconds: 30
+            # default: 1 Sek.
+            timeoutSeconds: 20
+            # periodischer Abstand zwischen den Proben (default: 10 Sek.)
+            periodSeconds: 120
+            # max. Anzahl an Fehlversuchen (default: 3)
+            failureThreshold: 2
+          volumeMounts:
+            - mountPath: /tmp
+              name: log-schwimmgruppe
+      volumes:
+        - name: log-schwimmgruppe
+          # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+          hostPath:
+            path: /run/desktop/mnt/host/c/Zimmermann/volumes/schwimmgruppe-v2
+            type: Directory
+          # https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+          #emptyDir: {}

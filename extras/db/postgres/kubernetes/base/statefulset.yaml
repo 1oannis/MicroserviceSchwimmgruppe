@@ -1,0 +1,120 @@
+# Copyright (C) 2021 - present Juergen Zimmermann, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# #it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# kubectl logs postgres-0 --namespace acme
+
+# Stateful: bei wiederholtem Start wird die Anwendung (hier: PostgreSQL) mit dem letzten Zustand fortgesetzt,
+# d.h. es werden keine Daten verloren
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      serviceAccountName: acme-postgres
+      containers:
+        - image: postgres:14.3-bullseye
+          name: postgres
+          envFrom:
+            - configMapRef:
+                name: postgres-env
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+          ports:
+            - containerPort: 5432
+              name: postgres
+          securityContext:
+            runAsNonRoot: true
+            # postgres
+            runAsUser: 999
+            runAsGroup: 999
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data-volume
+            - mountPath: /etc/postgresql/postgresql.conf
+              name: postgres-conf-volume
+            - mountPath: /var/lib/postgresql/tablespace
+              name: postgres-tablespace-volume
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "psql --dbname=postgres --username=postgres --command='SELECT 1'"]
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "psql --dbname=postgres --username=postgres --command='SELECT 1'"]
+      volumes:
+        - name: postgres-data-volume
+          persistentVolumeClaim:
+            claimName: postgres-data-volume-postgres-0
+        - name: postgres-conf-volume
+          persistentVolumeClaim:
+            claimName: postgres-conf-volume-postgres-0
+        - name: postgres-data-volume
+          persistentVolumeClaim:
+            claimName: postgres-tablespace-volume-postgres-0
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data-volume
+        labels:
+          app: postgres-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 2Gi
+        storageClassName: manual
+    - metadata:
+        name: postgres-conf-volume
+        labels:
+          app: postgres-conf
+      spec:
+        accessModes: [ "ReadOnlyMany" ]
+        resources:
+          requests:
+            storage: 100Ki
+        storageClassName: manual
+    - metadata:
+        name: postgres-tablespace-volume
+        labels:
+          app: postgres-tablespace
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: manual

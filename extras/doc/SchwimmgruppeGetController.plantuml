@@ -1,0 +1,58 @@
+@startuml SchwimmgruppeGetController
+skinparam classAttributeIconSize 0
+
+package org.springframework {
+    package web.bind.annotation {
+        annotation "@PathVariable" as PathVariable
+        annotation "@RequestParam" as RequestParam
+    }
+
+    package http {
+        class ResponseEntity<T>
+        package server.reactive {
+            interface ServerHttpRequest
+        }
+    }
+    package hateoas {
+        class CollectionModel<E>
+    }
+}
+
+package com.acme.schwimmgruppe {
+    package entity {
+        entity Schwimmgruppe << entity >>
+        class SchwimmgruppeId << typealias >>
+    }
+
+    package service {
+        class SchwimmgruppeReadService << control >> << @Service >>
+    }
+
+    package rest #ABC {
+        class SchwimmgruppeModel <<entity>>
+
+        class SchwimmgruppeGetController << boundary >> << @RestController >> << @RequestMapping >> {
+            + @GetMapping suspend findById(@PathVariable id: SchwimmgruppeId, request: ServerHttpRequest): ResponseEntity<SchwimmgruppeModel>
+            + @GetMapping suspend find(@RequestParam queryParams: MultiValueMap<String, String>, request: ServerHttpRequest): ResponseEntity<CollectionModel<SchwimmgruppeModel>>
+            + @GetMapping suspend findSchwimmhallenByPrefix(@PathVariable prefix: String): ResponseEntity<String>
+        }
+
+        SchwimmgruppeGetController o-right-> "1" SchwimmgruppeReadService : service
+        SchwimmgruppeGetController ..> SchwimmgruppeModel
+        SchwimmgruppeGetController ..> Schwimmgruppe
+        SchwimmgruppeGetController ..> SchwimmgruppeId
+
+        SchwimmgruppeGetController .up.> CollectionModel
+        SchwimmgruppeGetController .up.> ServerHttpRequest
+        SchwimmgruppeGetController .up.> ResponseEntity
+
+        SchwimmgruppeGetController .up.> PathVariable
+        SchwimmgruppeGetController .up.> RequestParam
+    }
+}
+
+hide empty members
+
+footer (c) Ioannis Theodosiadis
+
+@enduml

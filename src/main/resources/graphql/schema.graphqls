@@ -1,0 +1,64 @@
+"Suche nach Schwimmgruppe"
+type Query {
+  "Suche anhand der ID"
+  schwimmgruppe(id: ID!): Schwimmgruppe
+
+  "Suche anhand eines Suchkriteriums"
+  schwimmgruppen(input: Suchkriterien): [Schwimmgruppe!]
+}
+
+"Eine neue Schwimmgruppe anlegen"
+type Mutation {
+  create(input: SchwimmgruppeInput!): CreatePayload
+}
+
+# https://spec.graphql.org/draft/#sec-Types
+"Eigenschaften eines Schwimmgruppe-Datensatzes mit untergeordneten Eigenschaften"
+type Schwimmgruppe {
+  id: ID
+  name: String!
+  aktiv: Boolean!
+  trainingstermin1: String
+  trainingstermin2: String
+  ligaklasse: Ligaklasse
+  schwimmhalle: Schwimmhalle!
+}
+
+type Schwimmhalle {
+  bezeichnung: String!
+  plz: String!
+  ort: String!
+}
+
+# https://spec.graphql.org/draft/#sec-Input-Objects
+input Suchkriterien {
+  name: String
+  ligaklasse: Ligaklasse
+}
+
+input SchwimmgruppeInput {
+  name: String!
+  aktiv: Boolean!
+  trainingstermin1: String
+  trainingstermin2: String
+  ligaklasse: Ligaklasse
+  schwimmhalle: SchwimmhalleInput!
+}
+
+enum Ligaklasse {
+  KEINE_LIGA
+  STADTLIGA
+  LANDESLIGA
+  ZWEITE_BUNDESLIGA
+  ERSTE_BUNDESLIGA
+}
+
+input SchwimmhalleInput {
+  bezeichnung: String!
+  plz: String!
+  ort: String!
+}
+
+type CreatePayload {
+  id: String!
+}

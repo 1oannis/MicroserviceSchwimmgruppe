@@ -1,0 +1,18 @@
+mutation {
+  create(
+    input: {
+      name: "P-Jugend"
+      aktiv: true
+      trainingstermin1: "2022-08-30T16:00:00"
+      trainingstermin2: "2022-09-03T14:00:00"
+      ligaklasse: STADTLIGA
+      schwimmhalle: {
+        bezeichnung: "Schönbergbad"
+        plz: "72805"
+        ort: "Lichtenstein"
+      }
+    }
+  ) {
+    id
+  }
+}

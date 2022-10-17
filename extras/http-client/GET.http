@@ -1,0 +1,55 @@
+// Suche alle Schwimmgruppen
+// Code 200
+GET {{baseUrl}}/api
+Accept: application/hal+json
+
+###
+
+// Suche mit vorhandener Schwimmgruppen-ID
+// Code 200
+GET {{baseUrl}}/api/00000000-0000-0000-0000-000000000004
+Accept: application/hal+json
+
+###
+
+// Suche mit vorhandener (falscher) Schwimmgruppen-ID
+// Code 404
+GET {{baseUrl}}/api/06926118-fd24-4246-9a2a-7e91c45e7534
+Accept: application/hal+json
+
+###
+
+// Suche mit Name der Gruppe
+// Code 200
+GET {{baseUrl}}/api?name=A-Jugend
+Accept: application/hal+json
+
+###
+
+// Suche mit nicht vorhandenem Name
+// Code 404
+GET {{baseUrl}}/api?name=N-Jugend
+Accept: application/hal+json
+
+###
+
+// Suche mit Ligaklasse
+// Code 200
+GET {{baseUrl}}/api?ligaklasse=1.BL
+Accept: application/hal+json
+
+###
+
+// Suche mit Präfix Schwimmhalle
+// Code 200
+GET {{baseUrl}}/api/schwimmhalle/Eur
+Accept: application/hal+json
+
+###
+
+// Suche mit Zwei Kriterien
+// Code 200
+GET {{baseUrl}}/api?schwimmhalle=Frei&plz=76189
+Accept: application/hal+json
+
+###

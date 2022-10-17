@@ -1,0 +1,14 @@
+query ($ligaklasse: Ligaklasse = KEINE_LIGA) {
+  schwimmgruppen(input: {ligaklasse: $ligaklasse}) {
+    name
+    aktiv
+    trainingstermin1
+    trainingstermin2
+    ligaklasse
+    schwimmhalle {
+      bezeichnung
+      plz
+      ort
+    }
+  }
+}

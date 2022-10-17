@@ -1,0 +1,5 @@
+// Löschen mit vorhandener Schwimmgruppe-ID
+// Code 204
+DELETE {{baseUrl}}/api/00000000-0000-0000-0000-000000000001
+
+###

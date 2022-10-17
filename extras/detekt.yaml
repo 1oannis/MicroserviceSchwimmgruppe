@@ -1,0 +1,154 @@
+# Copyright (C) 2018 - present Juergen Zimmermann, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# https://github.com/detekt/detekt/blob/master/detekt-core/src/main/resources/default-detekt-config.yml
+
+build:
+  maxIssues: 1
+
+comments:
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+
+complexity:
+  LabeledExpression:
+    active: true
+  MethodOverloading:
+    active: true
+  NamedArguments:
+    active: true
+  ReplaceSafeCallChainWithRun:
+    active: true
+  StringLiteralDuplication:
+    active: true
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+
+exceptions:
+  NotImplementedDeclaration:
+    active: true
+  ObjectExtendsThrowable:
+    active: true
+  ReturnFromFinally:
+    active: true
+  SwallowedException:
+    active: true
+  ThrowingExceptionInMain:
+    active: true
+
+naming:
+  BooleanPropertyNaming:
+    active: true
+  ForbiddenClassName:
+    active: true
+  LambdaParameterNaming:
+    active: true
+  NonBooleanPropertyPrefixedWithIs:
+    active: true
+    excludes: ['**/test/**']
+
+performance:
+  CouldBeSequence:
+    active: true
+
+potential-bugs:
+  CastToNullableType:
+    active: true
+  Deprecation:
+    active: true
+  DontDowncastCollectionTypes:
+    active: true
+  ExitOutsideMain:
+    active: true
+  LateinitUsage:
+    active: true
+#  build.gradle.kts
+#  MissingPackageDeclaration:
+#    active: true
+  NullableToStringCall:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
+
+style:
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: true
+  DataClassContainsFunctions:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  ExplicitCollectionElementAccessMethod:
+    active: true
+  ExpressionBodySyntax:
+    active: true
+  ForbiddenMethodCall:
+    active: true
+    methods: ['kotlin.io.println', 'kotlin.io.print']
+  MandatoryBracesIfStatements:
+    active: true
+  MandatoryBracesLoops:
+    active: true
+  MultilineLambdaItParameter:
+    active: true
+  NoTabs:
+    active: true
+  NullableBooleanCheck:
+    active: true
+  OptionalUnit:
+    active: true
+  OptionalWhenBraces:
+    active: true
+  PreferToOverPairSyntax:
+    active: true
+  RedundantExplicitType:
+    active: true
+  RedundantVisibilityModifierRule:
+    active: true
+  ReturnCount:
+    max: 4
+  SpacingBetweenPackageAndImports:
+    active: true
+  TrailingWhitespace:
+    active: true
+  UnderscoresInNumericLiterals:
+    active: true
+  UnnecessaryAnnotationUseSiteTarget:
+    active: true
+  UnnecessaryBackticks:
+    active: true
+  UnnecessaryLet:
+    active: true
+  UnnecessaryParentheses:
+    active: true
+  UntilInsteadOfRangeTo:
+    active: true
+  UnusedImports:
+    active: true
+  UseDataClass:
+    active: true
+  UseEmptyCounterpart:
+    active: true
+  UseIfEmptyOrIfBlank:
+    active: true

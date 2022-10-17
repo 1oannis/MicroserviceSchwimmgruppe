@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+
+<!--
+Copyright (C) 2016 - present Juergen Zimmermann, Hochschule Karlsruhe
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<!--
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+    version="3.1">
+-->
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
+    <persistence-unit name="schwimmgruppePU">
+        <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
+        <class>com.acme.schwimmgruppe.entity.Schwimmgruppe</class>
+        <class>com.acme.schwimmgruppe.entity.Schwimmhalle</class>
+
+        <!-- Keine Validierung mit "Bean Validation" -->
+        <validation-mode>NONE</validation-mode>
+
+        <properties>
+            <!-- https://github.com/hibernate/hibernate-orm/blob/5.6/hibernate-core/src/main/java/org/hibernate/cfg/AvailableSettings.java -->
+            <!-- https://docs.jboss.org/hibernate/orm/5.6/javadocs/org/hibernate/cfg/AvailableSettings.html -->
+            <!-- https://how-to.vertx.io/hibernate-reactive-howto -->
+            <!-- https://docs.jboss.org/hibernate/orm/5.6/userguide/html_single/Hibernate_User_Guide.html#configurations-hbmddl -->
+            <!-- https://github.com/hibernate/hibernate-orm/blob/5.6/hibernate-core/src/main/java/org/hibernate/tool/schema/Action.java -->
+            <!-- https://github.com/hibernate/hibernate-orm/blob/5.6/hibernate-core/src/main/java/org/hibernate/tool/schema/SourceType.java -->
+            <!--
+            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://postgres/schwimmgruppe" />
+            <property name="javax.persistence.jdbc.user" value="schwimmgruppe" />
+            <property name="javax.persistence.jdbc.password" value="p" />
+            <property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
+            <property name="javax.persistence.schema-generation.create-source" value="script" />
+            <property name="javax.persistence.schema-generation.drop-script-source" value="postgres/drop.sql"/>
+            <property name="javax.persistence.schema-generation.create-script-source" value="postgres/create.sql" />
+            <property name="javax.persistence.sql-load-script-source" value="postgres/insert.sql" />
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL10Dialect" />
+            -->
+
+            <!-- https://docs.jboss.org/hibernate/orm/5.6/javadocs/org/hibernate/cfg/AvailableSettings.html -->
+
+            <!-- Connection Pool fuer Vert.x SQL Client, z.B. io.vertx.mutiny.pgclient.PgPool -->
+            <property name="hibernate.connection.pool_size" value="10"/>
+
+            <property name="hibernate.jdbc.time_zone" value="Europe/Berlin" />
+
+            <!-- Keine proprietaeren Erweiterungen von HQL nutzen -->
+            <property name="hibernate.query.jpaql_strict_compliance" value="true" />
+
+            <!-- SQL-Anweisungen lesbar protokollieren -->
+            <property name="hibernate.format_sql" value="true" />
+
+            <!-- Kommentare zu den generierten SQL-Anweisungen hinzufuegen -->
+            <property name="hibernate.use_sql_comments" value="true" />
+
+            <!-- gesonderte Protokollierung langsamer Queries -->
+            <property name="hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS" value="20" />
+
+            <!-- Batch fuer DML von automatisch versionierten Datensaetzen -->
+            <property name="hibernate.jdbc.batch_versioned_data" value="true" />
+
+            <!-- SQL-Anweisungen in den Skripten in mehreren Zeilen -->
+            <property name="hibernate.hbm2ddl.import_files_sql_extractor" value="org.hibernate.tool.hbm2ddl.MultipleLinesSqlCommandExtractor" />
+        </properties>
+    </persistence-unit>
+</persistence>

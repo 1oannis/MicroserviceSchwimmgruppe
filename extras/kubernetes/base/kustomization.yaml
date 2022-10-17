@@ -1,0 +1,46 @@
+# Copyright (C) 2022 - present Ioannis Theodosiadis, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# #it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization
+# https://www.giantswarm.io/blog/application-configuration-management-with-kustomize
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: acme
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/examples/configGeneration.md
+# https://github.com/kubernetes-sigs/kustomize/blob/master/examples/generatorOptions.md
+configMapGenerator:
+  - name: schwimmgruppe-env
+    literals:
+      - TZ=Europe/Berlin
+      - LANG=de_DE.utf8
+      # nur fuer slf4j und logback, nicht fuer log4j2 (ANSI-Farben werden bei Lens angezeigt, nicht bei Octant oder IJ)
+      #- SPRING_OUTPUT_ANSI_ENABLED=NEVER
+
+commonLabels:
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels
+  component: microservice
+  framework: spring-boot
+
+# Reihenfolge fuer die Installation der Kubernetes Ressourcen
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#composing-and-customizing-resources
+resources:
+  - serviceaccount.yaml
+  - deployment.yaml
+  - service.yaml

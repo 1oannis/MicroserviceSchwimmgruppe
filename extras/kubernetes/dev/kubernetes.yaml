@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    account: schwimmgruppe
+    app.kubernetes.io/managed-by: kustomize-v4.5.4
+    component: microservice
+    env: dev
+    framework: spring-boot
+  name: acme-schwimmgruppe
+  namespace: acme
+---
+apiVersion: v1
+data:
+  APPLICATION_LOGLEVEL: TRACE
+  LANG: de_DE.utf8
+  SERVER_HTTP2_ENABLED: "false"
+  SERVER_SSL_ENABLED: "false"
+  SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
+  SPRING_PROFILES_ACTIVE: dev
+  SPRING_PROFILES_DEFAULT: dev
+  TZ: Europe/Berlin
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize-v4.5.4
+    component: microservice
+    env: dev
+    framework: spring-boot
+  name: schwimmgruppe-env-mdf7497m57
+  namespace: acme
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: schwimmgruppe
+    app.kubernetes.io/managed-by: kustomize-v4.5.4
+    component: microservice
+    env: dev
+    framework: spring-boot
+  name: schwimmgruppe
+  namespace: acme
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: schwimmgruppe
+    component: microservice
+    env: dev
+    framework: spring-boot
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: schwimmgruppe
+    app.kubernetes.io/managed-by: kustomize-v4.5.4
+    component: microservice
+    env: dev
+    framework: spring-boot
+    version: 2.0.0
+  name: schwimmgruppe
+  namespace: acme
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schwimmgruppe
+      component: microservice
+      env: dev
+      framework: spring-boot
+      version: 2.0.0
+  template:
+    metadata:
+      labels:
+        app: schwimmgruppe
+        component: microservice
+        env: dev
+        framework: spring-boot
+        version: 2.0.0
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: schwimmgruppe-env-mdf7497m57
+        image: ioannistheodosiadis/schwimmgruppe:2.0.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 120
+          timeoutSeconds: 15
+        name: schwimmgruppe
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 120
+          timeoutSeconds: 15
+        resources:
+          limits:
+            cpu: 600m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - all
+          runAsNonRoot: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: log-schwimmgruppe
+      serviceAccountName: acme-schwimmgruppe
+      volumes:
+      - hostPath:
+          path: /run/desktop/mnt/host/c/Zimmermann/volumes/schwimmgruppe-v2
+          type: Directory
+        name: log-schwimmgruppe

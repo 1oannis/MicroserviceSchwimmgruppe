@@ -1,0 +1,148 @@
+# Copyright (C) 2022 - present Ioannis Theodosiadis, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# https://k8syaml.com
+
+---
+apiVersion: apps/v1
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#deployment-v1-apps
+kind: Deployment
+# Beschreibung des Deplyoments ("Metadaten")
+metadata:
+  name: schwimmgruppe
+  # Kennzeichen bzw. Markierung
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
+  # https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels
+  labels:
+    app: schwimmgruppe
+    version: 2.0.0
+spec:
+  # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#selector
+  selector:
+    # Label zur Identifikation des AKTUELLEN Deployments
+    # z.B. fuer:   kubectl delete deployment --selector app=schwimmgruppe,version=2.0.0 --namespace acme
+    #              kubectl delete deployment/schwimmgruppe-v1 --namespace acme
+    # gleicher Wert wie in template.metadata.labels
+    matchLabels:
+      app: schwimmgruppe
+      version: 2.0.0
+  # Anzahl laufender Pods fuer das Template zu diesem Deployment (s.u.) -> ReplicaSet
+  replicas: 1
+  # https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates
+  # Template (Schablone) fuer Pod
+  template:
+    metadata:
+      # Labels fuer einen laufenden Pod
+      labels:
+        app: schwimmgruppe
+        version: 2.0.0
+    # Spezifikation des Pod
+    spec:
+      serviceAccountName: acme-schwimmgruppe
+      containers:
+        # https://kubernetes.io/docs/concepts/containers/images
+        - image: ioannistheodosiadis/schwimmgruppe:2.0.0
+          #image: ioannistheodosiadis/schwimmgruppe:2.0.0-dockerfile
+          #image: ioannistheodosiadis/schwimmgruppe:2.0.0-jib
+          # default
+          imagePullPolicy: IfNotPresent
+          name: schwimmgruppe
+          # https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables
+          # https://opensource.com/article/19/6/introduction-kubernetes-secrets-and-configmaps
+          envFrom:
+            # https://kubernetes.io/docs/concepts/configuration/configmap
+            - configMapRef:
+                name: schwimmgruppe-env
+          # System-Properties fuer Jib, z.B. spring.profiles.active, spring.data.mongodb.username
+          # https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#jvm-flags
+          # funktioniert jedoch nicht mit dem Gradle-Plugin von Spring Boot, deshalb ConfigMap mit Umgebungsvariablen
+          #env:
+          #  - name: JAVA_TOOL_OPTIONS
+          #    value : "-Dspring.profiles.active=dev, -Dspring.data.mongodb.username=..."
+          ports:
+            - containerPort: 8080
+              name: http
+          securityContext:
+            # eingebauten User aus dem Basis-Image nutzen: cnb (uid=1000, gid=1000) bei "Cloud Native Buildpacks", nonroot (uid=65532, gid=65532) bei Distroless
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            # Logdatei in einem Verzeichnis durch Mounting; Zertifikate werden durch Paketo installiert
+            #readOnlyRootFilesystem: true
+            # https://snyk.io/blog/10-kubernetes-security-context-settings-you-should-understand
+            capabilities:
+              # keine Linux kernel capabilities
+              drop: [all]
+          resources:
+            # https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-resource-requests-and-limits
+            # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers
+            # Mindestanforderung an Ressourcen:
+            #   Ohne Begrenzung: zu viele Anwendungen werden bedient, d.h. Ueberlast
+            #   Zu restriktive Begrenzungen: CPU-Leistung ist nicht ausreichend
+            requests:
+              # CPU-Ressourcen werden in "millicores" definiert, z.B. "500m" oder "1"
+              # Beachte: Bei Hyper-Threading koennen in 1 CPU-Kern 2 verschiedene Threads bearbeitet werden
+              #          d.h. das Betriebssystem sieht scheinbar 2x so viele Kerne wie tatsaechlich vorhanden sind
+              cpu: 500m
+              #cpu: 200m
+              # Memory-Resources werden i.a. als "mebibyte" Wert definiert
+              # https://en.wikipedia.org/wiki/Byte#Multiple-byte_units
+              memory: 512Mi
+              #memory: 256Mi
+            # Begrenzung der Ressourcen, falls es im Knoten ("Node") noch freie Ressourcen gibt:   kubectl top pod
+            limits:
+              cpu: 600m
+              #cpu: 200m
+              memory: 512Mi
+              #memory: 256Mi
+          # Ist der Container "alive" oder "dead" (= "failing")? Im Fehlerfall: Neustart des Pods
+          # https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
+          # https://developers.redhat.com/blog/2020/11/10/you-probably-need-liveness-and-readiness-probes
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            # Anzahl Sekunden, bis die Probe fuer Liveness abgesetzt wird: default = 0 Sek.
+            #initialDelaySeconds: 0
+            # default = 1 Sek.
+            #timeoutSeconds: 1
+            # periodischer Abstand zwischen den Proben: default = 10 Sek.
+            #periodSeconds: 10
+            # max. Anzahl an Fehlversuchen: default = 3
+            #failureThreshold: 3
+          # Ist der Container "ready", um Requests zu beantworten? Sind Nachbarsysteme, z.B. DB-Server, ebenfalls "ready"?
+          # Im Fehlerfall wird der Pod nicht in den "load-balancing pool" eingefuegt
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            # Anzahl Sekunden, bis die Probe fuer Readiness abgesetzt wird: default = 0 Sek.
+            #initialDelaySeconds: 0
+            # default = 1 Sek.
+            #timeoutSeconds: 1
+            # periodischer Abstand zwischen den Proben: default = 10 Sek.
+            #periodSeconds: 10
+            # max. Anzahl an Fehlversuchen: default = 3
+            #failureThreshold: 3
+          volumeMounts:
+            - mountPath: /tmp
+              name: log-schwimmgruppe
+      volumes:
+        - name: log-schwimmgruppe
+          # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+          hostPath:
+            path: /run/desktop/mnt/host/c/Zimmermann/volumes/schwimmgruppe-v2
+            type: Directory
+          # https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+          #emptyDir: {}

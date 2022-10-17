@@ -1,0 +1,41 @@
+@startuml SchwimmgruppeReadService
+skinparam classAttributeIconSize 0
+
+package org.springframework.util {
+    interface MultiValueMap
+}
+
+package org.hibernate.reactive.mutiny {
+    interface SessionFactory
+}
+
+package com.acme.schwimmgruppe {
+  package entity {
+    entity Schwimmgruppe <<entity>>
+    class SchwimmgruppeId <<typealias>>
+  }
+
+  package service #ABC {
+    class SchwimmgruppeReadService <<control>> <<@Service>> {
+      +suspend findById(id: SchwimmgruppeId): FindByIdResult
+      +suspend findByIdWrite(id: SchwimmgruppeId): Schwimmgruppe?
+      +suspend find(suchkriterien: MultiValueMap<String, String>): Collection<Schwimmgruppe>
+      +suspend findSchwimmhalleByPrefix(prefix: String): Collection<String>
+    }
+
+    interface FindByIdResult <<sealed>>
+
+    class QueryBuilder <<control>> <<@Service>>
+  }
+
+  SchwimmgruppeReadService .up.> Schwimmgruppe
+  SchwimmgruppeReadService .up.> SchwimmgruppeId
+  SchwimmgruppeReadService ..> MultiValueMap
+  SchwimmgruppeReadService ..> FindByIdResult
+  SchwimmgruppeReadService o--> "1" QueryBuilder : queryBuilder
+  SchwimmgruppeReadService o-up-> "1" SessionFactory : factory
+}
+
+hide empty members
+footer (c) Ioannis Thedosiadis
+@enduml

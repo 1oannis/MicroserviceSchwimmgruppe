@@ -1,0 +1,14 @@
+query ($id: ID! = "00000000-0000-0000-0000-000000000004") {
+  schwimmgruppe(id: $id) {
+    name
+    aktiv
+    trainingstermin1
+    trainingstermin2
+    ligaklasse
+    schwimmhalle {
+      bezeichnung
+      plz
+      ort
+    }
+  }
+}

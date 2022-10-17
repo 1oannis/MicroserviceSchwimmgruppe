@@ -1,0 +1,36 @@
+// Eine Schwimmgruppe mittels PUT aktualisieren
+// Code 204
+PUT {{baseUrl}}/api/00000000-0000-0000-0000-000000000020
+Content-Type: application/json
+
+< data/schwimmgruppe-put.json
+
+###
+
+// Eine existierende Schwimmgruppe mittels PUT aktualisieren
+// Code 400
+PUT {{baseUrl}}/api/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+< data/schwimmgruppe-put-exists.json
+
+###
+
+// Eine nicht-vorhandene Schwimmgruppe mittels PUT aktualisieren
+// Code 404
+PUT {{baseUrl}}/api/f0000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+< data/schwimmgruppe-put.json
+
+###
+
+
+// Eine nicht-vorhandene Schwimmgruppe mittels PUT aktualisieren
+// Code 422
+PUT {{baseUrl}}/api/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+
+< data/schwimmgruppe-put-unprocessable.json
+
+###

@@ -1,0 +1,24 @@
+{
+  "name": "Schwimmgruppe Schema",
+  "schemaPath": "../../src/main/resources/graphql/schema.graphqls",
+  "extensions": {
+    "endpoints": {
+      "HTTPS": {
+        "url": "https://localhost:8080/graphql",
+        "headers": {
+          "Accept-Language": "de",
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": true
+      },
+      "HTTP": {
+        "url": "http://localhost:8080/graphql",
+        "headers": {
+          "Accept-Language": "de",
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": true
+      }
+    }
+  }
+}

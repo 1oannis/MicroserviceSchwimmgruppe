@@ -1,0 +1,50 @@
+# Copyright (C) 2021 - present Juergen Zimmermann, Hochschule Karlsruhe
+#
+# This program is free software: you can redistribute it and/or modify
+# #it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Aufruf:   cd extras\db\postgres\kubernetes\dev
+#             kustomize build | kubectl apply -f -
+#             kustomize build | kubectl delete -f -
+
+# siehe auch https://github.com/CrunchyData/postgres-operator
+
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+  - ../pgadmin
+
+# bereits erledigt als PostgreSQL mit Docker Compose gestartet wurde
+#configMapGenerator:
+#  - name: postgres-env
+#    behavior: merge
+#    literals:
+#      - POSTGRES_USER=admin
+#      - PGDATA=/var/lib/postgresql/data
+
+secretGenerator:
+  - name: postgres
+    behavior: merge
+    envs: [secret.env]
+
+patchesStrategicMerge:
+  - liveness.yaml
+  - readiness.yaml
+
+commonLabels:
+  env: dev
+
+buildMetadata: [managedByLabel]

@@ -1,0 +1,12 @@
+{
+  "name": "Stuttgart",
+  "aktiv": true,
+  "trainingstermin1": "2022-04-22T16:00:00",
+  "trainingstermin2": "2022-04-26T16:00:00",
+  "ligaklasse": "1.BL",
+  "schwimmhalle": {
+    "bezeichnung": "Bad der nicht Schwimmenden",
+    "plz": "7822",
+    "ort": "Niemandsland"
+  }
+}
