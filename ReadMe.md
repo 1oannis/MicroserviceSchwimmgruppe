@@ -1,6 +1,6 @@
 # Hinweise zum Programmierbeispiel
 
-[Juergen Zimmermann](mailto:Juergen.Zimmermann@h-ka.de)
+[Ioannis Theodosiadis](mailto:thio1011@h-ka.de)
 
 > Diese Datei ist in Markdown geschrieben und kann z.B. mit IntelliJ IDEA
 > gelesen werden. Näheres zu Markdown gibt es z.B. bei
